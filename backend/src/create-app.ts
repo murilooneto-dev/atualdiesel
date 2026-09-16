@@ -7,6 +7,8 @@ import { DecimalToNumberInterceptor } from './common/interceptors/decimal-to-num
 export async function createApp() {
   const app = await NestFactory.create(AppModule);
 
+  app.setGlobalPrefix('api');
+
   app.enableCors({
     origin: process.env.FRONTEND_URL ?? true,
     credentials: true,
