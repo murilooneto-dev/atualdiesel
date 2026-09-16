@@ -2,3 +2,7 @@
 .termbaker/
 CLAUDE.md
 TERMBAKER.md
+
+.vercel
+.env*
+node_modules/

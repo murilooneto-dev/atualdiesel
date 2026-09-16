@@ -1,5 +1,5 @@
 import serverless from 'serverless-http';
-import { createApp } from '../dist/create-app.js';
+import { createApp } from '../backend/dist/create-app.js';
 
 let cachedHandler;
 
