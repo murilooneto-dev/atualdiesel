@@ -1,0 +1,27 @@
+import type { ChecklistItemType, EntryChecklist } from '../types'
+import { createCrudService } from './crud'
+import { api } from './api'
+import { supabase } from '../lib/supabase'
+
+export const checklistItemTypesService = createCrudService<ChecklistItemType>('checklist-item-types')
+
+export const checklistsService = {
+  get: async (id: string) => {
+    const { data } = await api.get<EntryChecklist>(`/checklists/${id}`)
+    return data
+  },
+  create: async (payload: Partial<EntryChecklist>) => {
+    const { data } = await api.post<EntryChecklist>('/checklists', payload)
+    return data
+  },
+  uploadPhoto: async (checklistId: string, file: File) => {
+    const path = `checklists/${checklistId}/${Date.now()}-${file.name}`
+    const { error } = await supabase.storage.from('checklist-photos').upload(path, file)
+    if (error) throw error
+    const { data: urlData } = supabase.storage.from('checklist-photos').getPublicUrl(path)
+    const { data } = await api.post(`/checklists/${checklistId}/photos`, {
+      urlStorage: urlData.publicUrl,
+    })
+    return data
+  },
+}

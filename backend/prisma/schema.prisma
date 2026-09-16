@@ -1,0 +1,233 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  GERENTE
+  MECANICO
+}
+
+enum TipoPessoa {
+  PF
+  PJ
+}
+
+enum Combustivel {
+  GASOLINA
+  ETANOL
+  FLEX
+  DIESEL
+  GNV
+  ELETRICO
+  HIBRIDO
+}
+
+enum StatusChecklistItem {
+  OK
+  ATENCAO
+  NAO_APLICAVEL
+}
+
+enum NivelCombustivel {
+  RESERVA
+  UM_QUARTO
+  METADE
+  TRES_QUARTOS
+  CHEIO
+}
+
+enum StatusOS {
+  ABERTA
+  EM_ANDAMENTO
+  AGUARDANDO_APROVACAO
+  AGUARDANDO_PECA
+  CONCLUIDA
+  CANCELADA
+}
+
+// Complementa o auth.users do Supabase Auth (mesmo id/UUID)
+model Profile {
+  id        String   @id @db.Uuid
+  nome      String
+  email     String   @unique
+  papel     Role     @default(MECANICO)
+  ativo     Boolean  @default(true)
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  serviceOrdersCriadas ServiceOrder[]        @relation("ServiceOrderCriadoPor")
+  checklistsCriados    EntryChecklist[]      @relation("ChecklistCriadoPor")
+  statusHistorico      ServiceOrderStatusHistory[]
+
+  @@map("profiles")
+}
+
+model Client {
+  id           String   @id @default(uuid()) @db.Uuid
+  nome         String
+  tipoPessoa   TipoPessoa @default(PF) @map("tipo_pessoa")
+  cpfCnpj      String?  @map("cpf_cnpj")
+  telefone     String?
+  email        String?
+  rua          String?
+  numero       String?
+  bairro       String?
+  cidade       String?
+  uf           String?
+  cep          String?
+  observacoes  String?
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+
+  vehicles      Vehicle[]
+  serviceOrders ServiceOrder[]
+
+  @@map("clients")
+}
+
+model Vehicle {
+  id                  String      @id @default(uuid()) @db.Uuid
+  clientId            String      @map("client_id") @db.Uuid
+  client              Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  placa               String
+  marca               String
+  modelo              String
+  ano                 Int?
+  cor                 String?
+  quilometragemAtual  Int?        @map("quilometragem_atual")
+  combustivel         Combustivel @default(FLEX)
+  chassi              String?
+  observacoes         String?
+  ativo               Boolean     @default(true)
+  criadoEm            DateTime    @default(now()) @map("criado_em")
+
+  serviceOrders    ServiceOrder[]
+  entryChecklists  EntryChecklist[]
+
+  @@map("vehicles")
+}
+
+model Service {
+  id          String   @id @default(uuid()) @db.Uuid
+  nome        String
+  descricao   String?
+  valorPadrao Decimal  @default(0) @map("valor_padrao") @db.Decimal(10, 2)
+  ativo       Boolean  @default(true)
+  criadoEm    DateTime @default(now()) @map("criado_em")
+
+  itensOS ServiceOrderItem[]
+
+  @@map("services")
+}
+
+model ChecklistItemType {
+  id        String  @id @default(uuid()) @db.Uuid
+  nome      String
+  categoria String?
+  ativo     Boolean @default(true)
+
+  itens EntryChecklistItem[]
+
+  @@map("checklist_item_types")
+}
+
+model EntryChecklist {
+  id                 String   @id @default(uuid()) @db.Uuid
+  vehicleId          String   @map("vehicle_id") @db.Uuid
+  vehicle            Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  quilometragem      Int
+  nivelCombustivel   NivelCombustivel @map("nivel_combustivel")
+  observacoesGerais  String?  @map("observacoes_gerais")
+  criadoPor          String   @map("criado_por") @db.Uuid
+  criadoPorProfile   Profile  @relation("ChecklistCriadoPor", fields: [criadoPor], references: [id])
+  criadoEm           DateTime @default(now()) @map("criado_em")
+
+  itens         EntryChecklistItem[]
+  fotos         EntryChecklistPhoto[]
+  serviceOrders ServiceOrder[]
+
+  @@map("entry_checklists")
+}
+
+model EntryChecklistItem {
+  id                   String              @id @default(uuid()) @db.Uuid
+  entryChecklistId     String              @map("entry_checklist_id") @db.Uuid
+  entryChecklist       EntryChecklist      @relation(fields: [entryChecklistId], references: [id], onDelete: Cascade)
+  checklistItemTypeId  String              @map("checklist_item_type_id") @db.Uuid
+  checklistItemType    ChecklistItemType   @relation(fields: [checklistItemTypeId], references: [id])
+  status               StatusChecklistItem @default(OK)
+  observacao           String?
+
+  @@map("entry_checklist_items")
+}
+
+model EntryChecklistPhoto {
+  id                String         @id @default(uuid()) @db.Uuid
+  entryChecklistId  String         @map("entry_checklist_id") @db.Uuid
+  entryChecklist    EntryChecklist @relation(fields: [entryChecklistId], references: [id], onDelete: Cascade)
+  urlStorage        String         @map("url_storage")
+  descricao         String?
+  criadoEm          DateTime       @default(now()) @map("criado_em")
+
+  @@map("entry_checklist_photos")
+}
+
+model ServiceOrder {
+  id               String    @id @default(uuid()) @db.Uuid
+  numeroOs         Int       @unique @default(autoincrement()) @map("numero_os")
+  clientId         String    @map("client_id") @db.Uuid
+  client           Client    @relation(fields: [clientId], references: [id])
+  vehicleId        String    @map("vehicle_id") @db.Uuid
+  vehicle          Vehicle   @relation(fields: [vehicleId], references: [id])
+  entryChecklistId String?   @map("entry_checklist_id") @db.Uuid
+  entryChecklist   EntryChecklist? @relation(fields: [entryChecklistId], references: [id])
+  status           StatusOS  @default(ABERTA)
+  dataAbertura     DateTime  @default(now()) @map("data_abertura")
+  dataPrevisao     DateTime? @map("data_previsao")
+  dataConclusao    DateTime? @map("data_conclusao")
+  valorTotal       Decimal   @default(0) @map("valor_total") @db.Decimal(10, 2)
+  observacoes      String?
+  criadoPor        String    @map("criado_por") @db.Uuid
+  criadoPorProfile Profile   @relation("ServiceOrderCriadoPor", fields: [criadoPor], references: [id])
+  atualizadoEm     DateTime  @updatedAt @map("atualizado_em")
+
+  itens           ServiceOrderItem[]
+  statusHistorico ServiceOrderStatusHistory[]
+
+  @@map("service_orders")
+}
+
+model ServiceOrderItem {
+  id             String       @id @default(uuid()) @db.Uuid
+  serviceOrderId String       @map("service_order_id") @db.Uuid
+  serviceOrder   ServiceOrder @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  serviceId      String       @map("service_id") @db.Uuid
+  service        Service      @relation(fields: [serviceId], references: [id])
+  descricao      String
+  quantidade     Int          @default(1)
+  valorUnitario  Decimal      @map("valor_unitario") @db.Decimal(10, 2)
+  valorTotal     Decimal      @map("valor_total") @db.Decimal(10, 2)
+
+  @@map("service_order_items")
+}
+
+model ServiceOrderStatusHistory {
+  id             String       @id @default(uuid()) @db.Uuid
+  serviceOrderId String       @map("service_order_id") @db.Uuid
+  serviceOrder   ServiceOrder @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  statusAnterior StatusOS?    @map("status_anterior")
+  statusNovo     StatusOS     @map("status_novo")
+  alteradoPor    String       @map("alterado_por") @db.Uuid
+  alteradoPorProfile Profile  @relation(fields: [alteradoPor], references: [id])
+  alteradoEm     DateTime     @default(now()) @map("alterado_em")
+  observacao     String?
+
+  @@map("service_order_status_history")
+}
