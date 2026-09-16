@@ -1,5 +1,8 @@
 import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { TipoPessoa } from '@prisma/client';
+
+const emptyToUndefined = ({ value }: { value: unknown }) => (value === '' ? undefined : value);
 
 export class CreateClientDto {
   @IsString()
@@ -19,6 +22,7 @@ export class CreateClientDto {
   telefone?: string;
 
   @IsOptional()
+  @Transform(emptyToUndefined)
   @IsEmail()
   email?: string;
 
