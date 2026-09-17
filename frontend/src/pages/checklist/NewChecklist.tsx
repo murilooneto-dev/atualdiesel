@@ -47,6 +47,7 @@ export function NewChecklist() {
     queryKey: ['checklist-item-types'],
     queryFn: () => checklistItemTypesService.list(),
   })
+  const activeItemTypes = itemTypes?.filter((item) => item.ativo)
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -102,7 +103,7 @@ export function NewChecklist() {
             Itens verificados
           </Text>
           <Stack gap="xs">
-            {itemTypes?.map((item) => (
+            {activeItemTypes?.map((item) => (
               <Group key={item.id} justify="space-between">
                 <Text size="sm">{item.nome}</Text>
                 <Select
@@ -115,7 +116,7 @@ export function NewChecklist() {
                 />
               </Group>
             ))}
-            {(!itemTypes || itemTypes.length === 0) && (
+            {(!activeItemTypes || activeItemTypes.length === 0) && (
               <Text size="sm" c="dimmed">
                 Nenhum tipo de item cadastrado. Configure em "Configuração de itens".
               </Text>
