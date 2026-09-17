@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Button,
+  Divider,
   FileButton,
   Group,
   NumberInput,
@@ -48,6 +49,16 @@ export function NewChecklist() {
     queryFn: () => checklistItemTypesService.list(),
   })
   const activeItemTypes = itemTypes?.filter((item) => item.ativo)
+  const groupedItemTypes = useMemo(() => {
+    if (!activeItemTypes) return []
+    const groups = new Map<string, typeof activeItemTypes>()
+    for (const item of activeItemTypes) {
+      const key = item.categoria ?? 'Outros'
+      if (!groups.has(key)) groups.set(key, [])
+      groups.get(key)!.push(item)
+    }
+    return Array.from(groups.entries())
+  }, [activeItemTypes])
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -102,21 +113,28 @@ export function NewChecklist() {
           <Text fw={500} mb="xs">
             Itens verificados
           </Text>
-          <Stack gap="xs">
-            {activeItemTypes?.map((item) => (
-              <Group key={item.id} justify="space-between">
-                <Text size="sm">{item.nome}</Text>
-                <Select
-                  data={statusOptions}
-                  value={itemStatus[item.id] ?? 'OK'}
-                  onChange={(value) =>
-                    setItemStatus((prev) => ({ ...prev, [item.id]: (value as StatusChecklistItem) ?? 'OK' }))
-                  }
-                  w={180}
-                />
-              </Group>
+          <Stack gap="lg">
+            {groupedItemTypes.map(([categoria, items]) => (
+              <div key={categoria}>
+                <Divider label={categoria} labelPosition="left" mb="xs" />
+                <Stack gap="xs">
+                  {items.map((item) => (
+                    <Group key={item.id} justify="space-between">
+                      <Text size="sm">{item.nome}</Text>
+                      <Select
+                        data={statusOptions}
+                        value={itemStatus[item.id] ?? 'OK'}
+                        onChange={(value) =>
+                          setItemStatus((prev) => ({ ...prev, [item.id]: (value as StatusChecklistItem) ?? 'OK' }))
+                        }
+                        w={180}
+                      />
+                    </Group>
+                  ))}
+                </Stack>
+              </div>
             ))}
-            {(!activeItemTypes || activeItemTypes.length === 0) && (
+            {groupedItemTypes.length === 0 && (
               <Text size="sm" c="dimmed">
                 Nenhum tipo de item cadastrado. Configure em "Configuração de itens".
               </Text>

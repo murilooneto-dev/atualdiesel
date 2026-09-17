@@ -4,12 +4,13 @@ import { MantineProvider } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import { AuthProvider } from './contexts/AuthContext'
 import { router } from './routes'
+import { theme } from './theme'
 
 const queryClient = new QueryClient()
 
 function App() {
   return (
-    <MantineProvider defaultColorScheme="light">
+    <MantineProvider defaultColorScheme="light" theme={theme}>
       <Notifications />
       <QueryClientProvider client={queryClient}>
         <AuthProvider>

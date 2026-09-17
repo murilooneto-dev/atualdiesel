@@ -4,6 +4,15 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { PageHeader } from '../../components/PageHeader'
 import { dashboardService } from '../../services/dashboard'
 
+const statusLabels: Record<string, string> = {
+  ABERTA: 'Aberta',
+  EM_ANDAMENTO: 'Em andamento',
+  AGUARDANDO_APROVACAO: 'Aguardando aprovação',
+  AGUARDANDO_PECA: 'Aguardando peça',
+  CONCLUIDA: 'Concluída',
+  CANCELADA: 'Cancelada',
+}
+
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <Paper withBorder p="md">
@@ -27,7 +36,7 @@ export function Dashboard() {
   return (
     <>
       <PageHeader title="Dashboard" />
-      <SimpleGrid cols={{ base: 1, sm: 2, md: 5 }} mb="lg">
+      <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 5 }} mb="lg">
         <StatCard label="Clientes" value={summary?.totalClientes ?? '-'} />
         <StatCard label="Veículos" value={summary?.totalVeiculos ?? '-'} />
         <StatCard label="OS abertas" value={summary?.osAbertas ?? '-'} />
@@ -47,12 +56,18 @@ export function Dashboard() {
           Ordens de serviço por status
         </Title>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={Array.isArray(byStatus) ? byStatus : []}>
+          <BarChart
+            data={
+              Array.isArray(byStatus)
+                ? byStatus.map((item) => ({ ...item, status: statusLabels[item.status] ?? item.status }))
+                : []
+            }
+          >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="status" />
             <YAxis allowDecimals={false} />
             <Tooltip />
-            <Bar dataKey="quantidade" fill="#4c6ef5" />
+            <Bar dataKey="quantidade" fill="#fcc400" />
           </BarChart>
         </ResponsiveContainer>
       </Paper>

@@ -83,7 +83,12 @@ export function ChecklistDetail() {
                 <Table.Tr key={item.id}>
                   <Table.Td>{item.checklistItemType?.nome ?? '-'}</Table.Td>
                   <Table.Td>
-                    <Badge color={statusConfig[item.status].color}>{statusConfig[item.status].label}</Badge>
+                    <Badge
+                      color={statusConfig[item.status].color}
+                      styles={{ label: { overflow: 'visible', textOverflow: 'clip' } }}
+                    >
+                      {statusConfig[item.status].label}
+                    </Badge>
                   </Table.Td>
                   <Table.Td>{item.observacao ?? '-'}</Table.Td>
                 </Table.Tr>

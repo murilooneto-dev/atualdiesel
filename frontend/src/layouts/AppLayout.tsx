@@ -1,4 +1,4 @@
-import { AppShell, Burger, Group, NavLink, Text, Button } from '@mantine/core'
+import { AppShell, Avatar, Burger, Group, Image, NavLink, Text, Button, Stack } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
@@ -24,6 +24,12 @@ const navItems = [
   { label: 'Usuários', path: '/usuarios', icon: IconUserCog, roles: ['ADMIN'] },
 ] as const
 
+const roleLabels: Record<string, string> = {
+  ADMIN: 'Administrador',
+  GERENTE: 'Gerente/Recepção',
+  MECANICO: 'Mecânico',
+}
+
 export function AppLayout() {
   const [opened, { toggle }] = useDisclosure()
   const { profile, signOut } = useAuth()
@@ -31,44 +37,79 @@ export function AppLayout() {
   const navigate = useNavigate()
   const location = useLocation()
 
+  const initials = (profile?.nome ?? '?')
+    .split(' ')
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+
   return (
     <AppShell
-      header={{ height: 60 }}
+      header={{ height: 64 }}
       navbar={{ width: 260, breakpoint: 'sm', collapsed: { mobile: !opened } }}
       padding="md"
     >
-      <AppShell.Header>
-        <Group h="100%" px="md" justify="space-between">
-          <Group>
-            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-            <Text fw={700}>Atual Diesel — Gestão</Text>
-          </Group>
-          <Group>
-            <Text size="sm" c="dimmed">
-              {profile?.nome ?? '...'} ({profile?.papel ?? ''})
+      <AppShell.Header bg="graphite.8" style={{ borderBottom: '1px solid var(--mantine-color-graphite-6)' }}>
+        <Group h="100%" px="md" justify="space-between" wrap="nowrap">
+          <Group gap="xs" wrap="nowrap">
+            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" color="white" />
+            <Image src="/logo-mark.png" alt="" h={36} w={36} fit="contain" />
+            <Text fw={800} c="white" size="lg" lts={0.3} visibleFrom="xs">
+              ATUAL{' '}
+              <Text span c="amber.5" fw={800} inherit>
+                DIESEL
+              </Text>
             </Text>
-            <Button variant="subtle" size="xs" leftSection={<IconLogout size={14} />} onClick={() => void signOut()}>
+          </Group>
+          <Group gap="sm" wrap="nowrap">
+            <Avatar color="amber" radius="xl" size={32}>
+              {initials}
+            </Avatar>
+            <div style={{ minWidth: 0 }}>
+              <Text size="sm" c="white" fw={500} lh={1.1} truncate>
+                {profile?.nome ?? '...'}
+              </Text>
+              <Text size="xs" c="dimmed" lh={1.1}>
+                {profile ? roleLabels[profile.papel] ?? profile.papel : ''}
+              </Text>
+            </div>
+            <Button
+              variant="subtle"
+              color="gray.4"
+              size="xs"
+              leftSection={<IconLogout size={14} />}
+              onClick={() => void signOut()}
+            >
               Sair
             </Button>
           </Group>
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p="md">
-        {navItems
-          .filter((item) => hasRole(...(item.roles as unknown as Array<'ADMIN' | 'GERENTE' | 'MECANICO'>)))
-          .map((item) => (
-            <NavLink
-              key={item.path}
-              label={item.label}
-              leftSection={<item.icon size={18} />}
-              active={location.pathname === item.path}
-              onClick={() => navigate(item.path)}
-            />
-          ))}
+      <AppShell.Navbar bg="graphite.8" style={{ border: 'none' }}>
+        <Stack p="md" gap={4} h="100%">
+          {navItems
+            .filter((item) => hasRole(...(item.roles as unknown as Array<'ADMIN' | 'GERENTE' | 'MECANICO'>)))
+            .map((item) => (
+              <NavLink
+                key={item.path}
+                label={item.label}
+                leftSection={<item.icon size={18} />}
+                active={location.pathname === item.path}
+                onClick={() => navigate(item.path)}
+                variant="filled"
+                color="amber"
+                styles={{
+                  root: { borderRadius: 'var(--mantine-radius-md)', color: 'var(--mantine-color-gray-3)' },
+                  label: { fontWeight: 500 },
+                }}
+              />
+            ))}
+        </Stack>
       </AppShell.Navbar>
 
-      <AppShell.Main>
+      <AppShell.Main bg="gray.0">
         <Outlet />
       </AppShell.Main>
     </AppShell>

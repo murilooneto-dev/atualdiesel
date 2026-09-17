@@ -38,7 +38,7 @@ export function DataTable<T extends { id: string }>({
   }
 
   return (
-    <Table striped highlightOnHover withTableBorder>
+    <Table striped highlightOnHover withTableBorder stickyHeader stickyHeaderOffset={60}>
       <Table.Thead>
         <Table.Tr>
           {columns.map((col) => (

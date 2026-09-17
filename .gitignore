@@ -6,3 +6,4 @@ TERMBAKER.md
 .vercel
 .env*
 node_modules/
+.superpowers/
