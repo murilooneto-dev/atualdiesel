@@ -9,6 +9,9 @@ export class AppController {
   @Public()
   @Get()
   getHealth(): string {
-    return this.appService.getHealth();
+    console.log('[DIAG] AppController.getHealth: handler executing');
+    const result = this.appService.getHealth();
+    console.log('[DIAG] AppController.getHealth: returning', result);
+    return result;
   }
 }
