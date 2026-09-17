@@ -85,6 +85,7 @@ export interface EntryChecklistPhoto {
 
 export interface EntryChecklist {
   id: string
+  numeroChecklist: number
   vehicleId: string
   vehicle?: Vehicle
   serviceOrderId?: string | null

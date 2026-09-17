@@ -25,14 +25,6 @@ import { PageHeader } from '../../components/PageHeader'
 import type { EntryChecklist, StatusOS } from '../../types'
 import { usePermissions } from '../../hooks/usePermissions'
 
-const nivelLabels: Record<string, string> = {
-  RESERVA: 'Reserva',
-  UM_QUARTO: '1/4',
-  METADE: '1/2',
-  TRES_QUARTOS: '3/4',
-  CHEIO: 'Cheio',
-}
-
 const statusOptions: { value: StatusOS; label: string }[] = [
   { value: 'ABERTA', label: 'Aberta' },
   { value: 'EM_ANDAMENTO', label: 'Em andamento' },
@@ -178,8 +170,7 @@ export function ServiceOrderDetail() {
             <Group justify="space-between">
               <div>
                 <Text size="sm">
-                  {new Date(os.entryChecklist.criadoEm).toLocaleDateString('pt-BR')} — {os.entryChecklist.quilometragem} km —{' '}
-                  {nivelLabels[os.entryChecklist.nivelCombustivel] ?? os.entryChecklist.nivelCombustivel}
+                  Checklist #{os.entryChecklist.numeroChecklist} — {new Date(os.entryChecklist.criadoEm).toLocaleDateString('pt-BR')}
                 </Text>
               </div>
               <Anchor component={Link} to={`/checklist/${os.entryChecklist.id}`} size="sm">
@@ -194,7 +185,7 @@ export function ServiceOrderDetail() {
                 data={
                   vehicleChecklists?.map((c) => ({
                     value: c.id,
-                    label: `${new Date(c.criadoEm).toLocaleDateString('pt-BR')} — ${c.quilometragem} km`,
+                    label: `Checklist #${c.numeroChecklist} — ${new Date(c.criadoEm).toLocaleDateString('pt-BR')}`,
                   })) ?? []
                 }
                 value={checklistId}

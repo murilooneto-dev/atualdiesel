@@ -38,6 +38,7 @@ export function ChecklistsList() {
         loading={isLoading}
         onRowClick={(row) => navigate(`/checklist/${row.id}`)}
         columns={[
+          { header: 'Nº', render: (row: EntryChecklist) => `#${row.numeroChecklist}` },
           {
             header: 'Data',
             render: (row: EntryChecklist) => new Date(row.criadoEm).toLocaleDateString('pt-BR'),
