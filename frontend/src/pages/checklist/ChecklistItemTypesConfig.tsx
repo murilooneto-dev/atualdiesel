@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ActionIcon, Button, Group, Modal, Paper, Stack, TextInput } from '@mantine/core'
+import { ActionIcon, Badge, Button, Group, Modal, Paper, Stack, Switch, TextInput } from '@mantine/core'
 import { IconEdit, IconPlus, IconTrash } from '@tabler/icons-react'
 import { useForm } from '@mantine/form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -11,13 +11,14 @@ import type { ChecklistItemType } from '../../types'
 interface FormValues {
   nome: string
   categoria: string
+  ativo: boolean
 }
 
 export function ChecklistItemTypesConfig() {
   const [opened, setOpened] = useState(false)
   const [editing, setEditing] = useState<ChecklistItemType | null>(null)
   const queryClient = useQueryClient()
-  const form = useForm<FormValues>({ initialValues: { nome: '', categoria: '' } })
+  const form = useForm<FormValues>({ initialValues: { nome: '', categoria: '', ativo: true } })
 
   const { data, isLoading } = useQuery({
     queryKey: ['checklist-item-types'],
@@ -52,13 +53,13 @@ export function ChecklistItemTypesConfig() {
 
   const openCreate = () => {
     setEditing(null)
-    form.setValues({ nome: '', categoria: '' })
+    form.setValues({ nome: '', categoria: '', ativo: true })
     setOpened(true)
   }
 
   const openEdit = (item: ChecklistItemType) => {
     setEditing(item)
-    form.setValues({ nome: item.nome, categoria: item.categoria ?? '' })
+    form.setValues({ nome: item.nome, categoria: item.categoria ?? '', ativo: item.ativo })
     setOpened(true)
   }
 
@@ -85,6 +86,12 @@ export function ChecklistItemTypesConfig() {
             { header: 'Nome', render: (row) => row.nome },
             { header: 'Categoria', render: (row) => row.categoria ?? '-' },
             {
+              header: 'Status',
+              render: (row: ChecklistItemType) => (
+                <Badge color={row.ativo ? 'green' : 'gray'}>{row.ativo ? 'Ativo' : 'Inativo'}</Badge>
+              ),
+            },
+            {
               header: 'Ações',
               render: (row: ChecklistItemType) => (
                 <Group gap="xs">
@@ -105,6 +112,11 @@ export function ChecklistItemTypesConfig() {
           <Stack gap="sm">
             <TextInput label="Nome" required {...form.getInputProps('nome')} />
             <TextInput label="Categoria" {...form.getInputProps('categoria')} />
+            <Switch
+              label="Ativo"
+              checked={form.values.ativo}
+              onChange={(e) => form.setFieldValue('ativo', e.currentTarget.checked)}
+            />
             <Group justify="flex-end" mt="md">
               <Button variant="default" type="button" onClick={() => setOpened(false)}>
                 Cancelar
