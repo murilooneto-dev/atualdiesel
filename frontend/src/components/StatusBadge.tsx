@@ -12,5 +12,9 @@ const statusConfig: Record<StatusOS, { label: string; color: string }> = {
 
 export function StatusBadge({ status }: { status: StatusOS }) {
   const config = statusConfig[status]
-  return <Badge color={config.color}>{config.label}</Badge>
+  return (
+    <Badge color={config.color} styles={{ label: { overflow: 'visible', textOverflow: 'clip' } }}>
+      {config.label}
+    </Badge>
+  )
 }
