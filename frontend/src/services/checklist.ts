@@ -6,13 +6,11 @@ import { supabase } from '../lib/supabase'
 export const checklistItemTypesService = createCrudService<ChecklistItemType>('checklist-item-types')
 
 export const checklistsService = {
-  get: async (id: string) => {
-    const { data } = await api.get<EntryChecklist>(`/checklists/${id}`)
-    return data
-  },
-  create: async (payload: Partial<EntryChecklist>) => {
-    const { data } = await api.post<EntryChecklist>('/checklists', payload)
-    return data
+  ...createCrudService<EntryChecklist>('checklists'),
+  openPdf: async (id: string) => {
+    const { data } = await api.get(`/checklists/${id}/pdf`, { responseType: 'blob' })
+    const url = URL.createObjectURL(data)
+    window.open(url, '_blank')
   },
   uploadPhoto: async (checklistId: string, file: File) => {
     const path = `checklists/${checklistId}/${Date.now()}-${file.name}`

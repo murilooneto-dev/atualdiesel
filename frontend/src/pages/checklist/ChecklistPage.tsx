@@ -1,6 +1,7 @@
 import { Tabs } from '@mantine/core'
 import { PageHeader } from '../../components/PageHeader'
 import { NewChecklist } from './NewChecklist'
+import { ChecklistsList } from './ChecklistsList'
 import { ChecklistItemTypesConfig } from './ChecklistItemTypesConfig'
 import { usePermissions } from '../../hooks/usePermissions'
 
@@ -14,10 +15,14 @@ export function ChecklistPage() {
       <Tabs defaultValue="novo">
         <Tabs.List mb="md">
           <Tabs.Tab value="novo">Novo checklist</Tabs.Tab>
+          <Tabs.Tab value="realizados">Checklists realizados</Tabs.Tab>
           {canConfigure && <Tabs.Tab value="config">Configuração de itens</Tabs.Tab>}
         </Tabs.List>
         <Tabs.Panel value="novo">
           <NewChecklist />
+        </Tabs.Panel>
+        <Tabs.Panel value="realizados">
+          <ChecklistsList />
         </Tabs.Panel>
         {canConfigure && (
           <Tabs.Panel value="config">

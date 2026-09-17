@@ -12,6 +12,7 @@ import { VehiclesList } from '../pages/vehicles/VehiclesList'
 import { VehicleDetail } from '../pages/vehicles/VehicleDetail'
 import { ServicesList } from '../pages/services/ServicesList'
 import { ChecklistPage } from '../pages/checklist/ChecklistPage'
+import { ChecklistDetail } from '../pages/checklist/ChecklistDetail'
 import { ServiceOrdersList } from '../pages/service-orders/ServiceOrdersList'
 import { NewServiceOrder } from '../pages/service-orders/NewServiceOrder'
 import { ServiceOrderDetail } from '../pages/service-orders/ServiceOrderDetail'
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
       { path: '/veiculos/:id', element: <VehicleDetail /> },
       { path: '/servicos', element: <ServicesList /> },
       { path: '/checklist', element: <ChecklistPage /> },
+      { path: '/checklist/:id', element: <ChecklistDetail /> },
       { path: '/ordens-servico', element: <ServiceOrdersList /> },
       { path: '/ordens-servico/nova', element: <NewServiceOrder /> },
       { path: '/ordens-servico/:id', element: <ServiceOrderDetail /> },

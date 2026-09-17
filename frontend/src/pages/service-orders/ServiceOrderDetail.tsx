@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ActionIcon,
+  Anchor,
   Button,
   Group,
   NumberInput,
@@ -18,10 +19,19 @@ import { IconDownload, IconTrash } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
 import { serviceOrdersService } from '../../services/serviceOrders'
 import { servicesService } from '../../services/services'
+import { vehiclesService } from '../../services/vehicles'
 import { StatusBadge } from '../../components/StatusBadge'
 import { PageHeader } from '../../components/PageHeader'
-import type { StatusOS } from '../../types'
+import type { EntryChecklist, StatusOS } from '../../types'
 import { usePermissions } from '../../hooks/usePermissions'
+
+const nivelLabels: Record<string, string> = {
+  RESERVA: 'Reserva',
+  UM_QUARTO: '1/4',
+  METADE: '1/2',
+  TRES_QUARTOS: '3/4',
+  CHEIO: 'Cheio',
+}
 
 const statusOptions: { value: StatusOS; label: string }[] = [
   { value: 'ABERTA', label: 'Aberta' },
@@ -41,6 +51,7 @@ export function ServiceOrderDetail() {
 
   const [serviceId, setServiceId] = useState<string | null>(null)
   const [quantidade, setQuantidade] = useState<number>(1)
+  const [checklistId, setChecklistId] = useState<string | null>(null)
 
   const { data: os } = useQuery({
     queryKey: ['service-orders', id],
@@ -49,6 +60,12 @@ export function ServiceOrderDetail() {
   })
 
   const { data: services } = useQuery({ queryKey: ['services'], queryFn: () => servicesService.list() })
+
+  const { data: vehicleChecklists } = useQuery({
+    queryKey: ['vehicles', os?.vehicleId, 'checklists'],
+    queryFn: () => vehiclesService.checklists(os!.vehicleId) as Promise<EntryChecklist[]>,
+    enabled: !!os?.vehicleId && !os?.entryChecklist,
+  })
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['service-orders', id] })
 
@@ -87,6 +104,15 @@ export function ServiceOrderDetail() {
     mutationFn: () => serviceOrdersService.finalize(id!),
     onSuccess: () => {
       notifications.show({ message: 'OS finalizada.', color: 'green' })
+      invalidate()
+    },
+  })
+
+  const linkChecklistMutation = useMutation({
+    mutationFn: () => serviceOrdersService.linkChecklist(id!, checklistId!),
+    onSuccess: () => {
+      notifications.show({ message: 'Checklist vinculado à OS.', color: 'green' })
+      setChecklistId(null)
       invalidate()
     },
   })
@@ -144,6 +170,51 @@ export function ServiceOrderDetail() {
           </div>
         </SimpleGrid>
       </Paper>
+
+      <div>
+        <Title order={4} mb="sm">Checklist vinculado</Title>
+        <Paper withBorder p="md">
+          {os.entryChecklist ? (
+            <Group justify="space-between">
+              <div>
+                <Text size="sm">
+                  {new Date(os.entryChecklist.criadoEm).toLocaleDateString('pt-BR')} — {os.entryChecklist.quilometragem} km —{' '}
+                  {nivelLabels[os.entryChecklist.nivelCombustivel] ?? os.entryChecklist.nivelCombustivel}
+                </Text>
+              </div>
+              <Anchor component={Link} to={`/checklist/${os.entryChecklist.id}`} size="sm">
+                Ver checklist
+              </Anchor>
+            </Group>
+          ) : canEdit ? (
+            <Group align="flex-end">
+              <Select
+                label="Checklist do veículo"
+                placeholder={vehicleChecklists?.length ? 'Selecione um checklist' : 'Nenhum checklist para este veículo'}
+                data={
+                  vehicleChecklists?.map((c) => ({
+                    value: c.id,
+                    label: `${new Date(c.criadoEm).toLocaleDateString('pt-BR')} — ${c.quilometragem} km`,
+                  })) ?? []
+                }
+                value={checklistId}
+                onChange={setChecklistId}
+                w={320}
+                disabled={!vehicleChecklists?.length}
+              />
+              <Button
+                onClick={() => linkChecklistMutation.mutate()}
+                loading={linkChecklistMutation.isPending}
+                disabled={!checklistId}
+              >
+                Vincular
+              </Button>
+            </Group>
+          ) : (
+            <Text c="dimmed" size="sm">Nenhum checklist vinculado.</Text>
+          )}
+        </Paper>
+      </div>
 
       <div>
         <Title order={4} mb="sm">Serviços</Title>
