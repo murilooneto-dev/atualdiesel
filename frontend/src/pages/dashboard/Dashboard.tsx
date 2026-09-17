@@ -67,7 +67,7 @@ export function Dashboard() {
             <XAxis dataKey="status" />
             <YAxis allowDecimals={false} />
             <Tooltip />
-            <Bar dataKey="quantidade" fill="#4c6ef5" />
+            <Bar dataKey="quantidade" fill="#fcc400" />
           </BarChart>
         </ResponsiveContainer>
       </Paper>
