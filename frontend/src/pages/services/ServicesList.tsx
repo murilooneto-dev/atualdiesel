@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { ActionIcon, Button, Group, Paper } from '@mantine/core'
-import { IconEdit, IconPlus, IconTrash } from '@tabler/icons-react'
+import { useMemo, useState } from 'react'
+import { ActionIcon, Button, Group, Paper, TextInput } from '@mantine/core'
+import { IconEdit, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import { PageHeader } from '../../components/PageHeader'
@@ -13,11 +13,18 @@ import { usePermissions } from '../../hooks/usePermissions'
 export function ServicesList() {
   const [formOpened, setFormOpened] = useState(false)
   const [editing, setEditing] = useState<Service | null>(null)
+  const [search, setSearch] = useState('')
   const queryClient = useQueryClient()
   const { hasRole } = usePermissions()
   const canEdit = hasRole('ADMIN', 'GERENTE')
 
   const { data, isLoading } = useQuery({ queryKey: ['services'], queryFn: () => servicesService.list() })
+
+  const filteredData = useMemo(() => {
+    if (!search.trim()) return data
+    const term = search.trim().toLowerCase()
+    return data?.filter((s) => s.nome.toLowerCase().includes(term))
+  }, [data, search])
 
   const createMutation = useMutation({
     mutationFn: servicesService.create,
@@ -72,8 +79,15 @@ export function ServicesList() {
         }
       />
       <Paper withBorder p="md">
+        <TextInput
+          placeholder="Buscar por nome..."
+          leftSection={<IconSearch size={16} />}
+          mb="md"
+          value={search}
+          onChange={(e) => setSearch(e.currentTarget.value)}
+        />
         <DataTable
-          data={data}
+          data={filteredData}
           loading={isLoading}
           columns={[
             { header: 'Nome', render: (row) => row.nome },
