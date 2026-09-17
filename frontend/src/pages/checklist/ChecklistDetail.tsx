@@ -34,7 +34,7 @@ export function ChecklistDetail() {
   return (
     <Stack gap="lg">
       <PageHeader
-        title={`Checklist — ${checklist.vehicle?.placa ?? ''}`}
+        title={`Checklist #${checklist.numeroChecklist} — ${checklist.vehicle?.placa ?? ''}`}
         action={
           <Button
             variant="default"

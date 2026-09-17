@@ -34,7 +34,7 @@ export function ChecklistPdf({ checklist }: { checklist: EntryChecklistWithRelat
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.title}>Atual Diesel — Checklist de Entrada</Text>
+        <Text style={styles.title}>Atual Diesel — Checklist de Entrada #{checklist.numeroChecklist}</Text>
         <Text style={styles.subtitle}>
           Realizado em {new Date(checklist.criadoEm).toLocaleDateString('pt-BR')}
         </Text>
