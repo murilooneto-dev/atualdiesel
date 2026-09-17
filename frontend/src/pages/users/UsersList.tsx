@@ -32,7 +32,8 @@ export function UsersList() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, values }: { id: string; values: UserFormValues }) => usersService.update(id, values),
+    mutationFn: ({ id, values }: { id: string; values: Omit<UserFormValues, 'email' | 'senha'> }) =>
+      usersService.update(id, values),
     onSuccess: () => {
       notifications.show({ message: 'Usuário atualizado com sucesso.', color: 'green' })
       queryClient.invalidateQueries({ queryKey: ['users'] })
@@ -50,9 +51,11 @@ export function UsersList() {
 
   const handleSubmit = (values: UserFormValues) => {
     if (editing) {
-      updateMutation.mutate({ id: editing.id, values })
+      const { email: _email, senha: _senha, ...rest } = values
+      updateMutation.mutate({ id: editing.id, values: rest })
     } else {
-      createMutation.mutate(values)
+      const { email: _email, ...rest } = values
+      createMutation.mutate(rest)
     }
   }
 
