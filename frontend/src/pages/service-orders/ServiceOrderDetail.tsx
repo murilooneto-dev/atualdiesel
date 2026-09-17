@@ -259,6 +259,7 @@ export function ServiceOrderDetail() {
             <Group align="flex-end">
               <Select
                 label="Serviço"
+                searchable
                 data={services?.map((s) => ({ value: s.id, label: s.nome })) ?? []}
                 value={serviceId}
                 onChange={setServiceId}
