@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core'
 import { vehiclesService } from '../../services/vehicles'
@@ -9,6 +9,7 @@ import { PageHeader } from '../../components/PageHeader'
 
 export function VehicleDetail() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
 
   const { data: vehicle } = useQuery({
     queryKey: ['vehicles', id],
@@ -90,6 +91,7 @@ export function VehicleDetail() {
           <DataTable
             data={checklists}
             loading={loadingChecklists}
+            onRowClick={(row) => navigate(`/checklist/${row.id}`)}
             columns={[
               {
                 header: 'Data',

@@ -8,6 +8,14 @@ import { CreateChecklistPhotoDto } from './dto/create-checklist-photo.dto.js';
 export class ChecklistsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  list(search?: string) {
+    return this.prisma.entryChecklist.findMany({
+      where: search ? { vehicle: { placa: { contains: search, mode: 'insensitive' } } } : undefined,
+      include: { vehicle: true },
+      orderBy: { criadoEm: 'desc' },
+    });
+  }
+
   async get(id: string) {
     const checklist = await this.prisma.entryChecklist.findUnique({
       where: { id },

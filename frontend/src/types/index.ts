@@ -123,6 +123,7 @@ export interface ServiceOrder {
   vehicleId: string
   vehicle?: Vehicle
   entryChecklistId?: string | null
+  entryChecklist?: EntryChecklist | null
   status: StatusOS
   dataAbertura: string
   dataPrevisao?: string | null

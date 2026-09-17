@@ -19,6 +19,10 @@ export const serviceOrdersService = {
     const { data } = await api.post(`/service-orders/${osId}/finalize`)
     return data
   },
+  linkChecklist: async (osId: string, entryChecklistId: string) => {
+    const { data } = await api.patch(`/service-orders/${osId}`, { entryChecklistId })
+    return data
+  },
   openPdf: async (osId: string) => {
     const { data } = await api.get(`/service-orders/${osId}/pdf`, { responseType: 'blob' })
     const url = URL.createObjectURL(data)

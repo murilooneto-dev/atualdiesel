@@ -9,6 +9,7 @@ import { UpdateStatusDto } from './dto/update-status.dto.js';
 const include = {
   client: true,
   vehicle: true,
+  entryChecklist: true,
   itens: { include: { service: true } },
   statusHistorico: { orderBy: { alteradoEm: 'desc' as const } },
 };
