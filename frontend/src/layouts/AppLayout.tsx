@@ -10,19 +10,12 @@ import {
   IconFileInvoice,
   IconUserCog,
   IconLogout,
-  IconListDetails,
 } from '@tabler/icons-react'
 import { useAuth } from '../hooks/useAuth'
 import { usePermissions } from '../hooks/usePermissions'
 
 const navItems = [
   { label: 'Dashboard', path: '/', icon: IconDashboard, roles: ['ADMIN', 'GERENTE', 'MECANICO'] },
-  {
-    label: 'OS em aberto',
-    path: '/dashboard/em-aberto',
-    icon: IconListDetails,
-    roles: ['ADMIN', 'GERENTE', 'MECANICO'],
-  },
   { label: 'Clientes', path: '/clientes', icon: IconUsers, roles: ['ADMIN', 'GERENTE', 'MECANICO'] },
   { label: 'Veículos', path: '/veiculos', icon: IconCar, roles: ['ADMIN', 'GERENTE', 'MECANICO'] },
   { label: 'Serviços', path: '/servicos', icon: IconTools, roles: ['ADMIN', 'GERENTE', 'MECANICO'] },

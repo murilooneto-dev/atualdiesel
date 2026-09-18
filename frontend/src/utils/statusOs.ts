@@ -9,54 +9,71 @@ export const STATUS_OS_CONFIG: Record<StatusOS, { label: string; color: string }
   CANCELADA: { label: 'Cancelada', color: 'red' },
 }
 
-export type StatusBarItem = {
+export type DashboardBucket = {
   key: string
   label: string
   color: string
   quantidade: number
+  /** Leaf bucket: expanding it fetches and shows OS matching these statuses. */
+  statuses?: StatusOS[]
+  /** Branch bucket: expanding it shows these nested buckets instead of a list. */
+  children?: DashboardBucket[]
 }
 
 /**
- * Groups the raw per-status counts from /dashboard/service-orders-by-status
- * into the 3 buckets shown on the main dashboard: Em andamento, Aguardando
- * (aprovação + peça combined) and Aprovada. Aberta/Cancelada are excluded on
- * purpose - they don't belong in this summary widget.
+ * Builds the 3 top-level dashboard buckets (Aberto / Em Andamento / Concluído)
+ * from the raw per-status counts returned by /dashboard/service-orders-by-status.
+ * "Em Andamento" is a branch with 3 children (Em execução, Aguardando
+ * aprovação, Aguardando peça); its own quantidade is the sum of its children.
+ * Cancelada is intentionally excluded from the main dashboard.
  */
-export function getDashboardGroups(byStatus: { status: string; quantidade: number }[]): StatusBarItem[] {
+export function getDashboardBuckets(byStatus: { status: string; quantidade: number }[]): DashboardBucket[] {
   const quantidadeFor = (status: StatusOS) =>
     byStatus.find((item) => item.status === status)?.quantidade ?? 0
 
+  const emExecucao: DashboardBucket = {
+    key: 'em_execucao',
+    label: 'Em execução',
+    color: STATUS_OS_CONFIG.EM_ANDAMENTO.color,
+    quantidade: quantidadeFor('EM_ANDAMENTO'),
+    statuses: ['EM_ANDAMENTO'],
+  }
+  const aguardandoAprovacao: DashboardBucket = {
+    key: 'aguardando_aprovacao',
+    label: STATUS_OS_CONFIG.AGUARDANDO_APROVACAO.label,
+    color: STATUS_OS_CONFIG.AGUARDANDO_APROVACAO.color,
+    quantidade: quantidadeFor('AGUARDANDO_APROVACAO'),
+    statuses: ['AGUARDANDO_APROVACAO'],
+  }
+  const aguardandoPeca: DashboardBucket = {
+    key: 'aguardando_peca',
+    label: STATUS_OS_CONFIG.AGUARDANDO_PECA.label,
+    color: STATUS_OS_CONFIG.AGUARDANDO_PECA.color,
+    quantidade: quantidadeFor('AGUARDANDO_PECA'),
+    statuses: ['AGUARDANDO_PECA'],
+  }
+
   return [
     {
+      key: 'aberto',
+      label: STATUS_OS_CONFIG.ABERTA.label,
+      color: STATUS_OS_CONFIG.ABERTA.color,
+      quantidade: quantidadeFor('ABERTA'),
+      statuses: ['ABERTA'],
+    },
+    {
       key: 'em_andamento',
-      label: STATUS_OS_CONFIG.EM_ANDAMENTO.label,
+      label: 'Em Andamento',
       color: STATUS_OS_CONFIG.EM_ANDAMENTO.color,
-      quantidade: quantidadeFor('EM_ANDAMENTO'),
+      quantidade: emExecucao.quantidade + aguardandoAprovacao.quantidade + aguardandoPeca.quantidade,
+      children: [emExecucao, aguardandoAprovacao, aguardandoPeca],
     },
     {
-      key: 'aguardando',
-      label: 'Aguardando',
-      color: STATUS_OS_CONFIG.AGUARDANDO_APROVACAO.color,
-      quantidade: quantidadeFor('AGUARDANDO_APROVACAO') + quantidadeFor('AGUARDANDO_PECA'),
-    },
-    {
-      key: 'aprovada',
-      label: STATUS_OS_CONFIG.CONCLUIDA.label,
+      key: 'concluido',
+      label: 'Concluído',
       color: STATUS_OS_CONFIG.CONCLUIDA.color,
       quantidade: quantidadeFor('CONCLUIDA'),
+      statuses: ['CONCLUIDA'],
     },
   ]
-}
-
-/**
- * The 3 "in progress" statuses shown ungrouped on the open-orders dashboard.
- */
-export function getOpenOrdersItems(byStatus: { status: string; quantidade: number }[]): StatusBarItem[] {
-  const openStatuses: StatusOS[] = ['EM_ANDAMENTO', 'AGUARDANDO_APROVACAO', 'AGUARDANDO_PECA']
-  return openStatuses.map((status) => ({
-    key: status,
-    label: STATUS_OS_CONFIG[status].label,
-    color: STATUS_OS_CONFIG[status].color,
-    quantidade: byStatus.find((item) => item.status === status)?.quantidade ?? 0,
-  }))
 }
