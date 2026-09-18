@@ -1,11 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import type { Profile } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateClientDto } from './dto/create-client.dto.js';
 import { UpdateClientDto } from './dto/update-client.dto.js';
+import { AuditService } from '../audit/audit.service.js';
 
 @Injectable()
 export class ClientsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   list(search?: string) {
     return this.prisma.client.findMany({
@@ -40,17 +45,22 @@ export class ClientsService {
     });
   }
 
-  create(dto: CreateClientDto) {
-    return this.prisma.client.create({ data: dto });
+  async create(dto: CreateClientDto, user: Profile) {
+    const client = await this.prisma.client.create({ data: dto });
+    await this.audit.log({ entidade: 'Client', entidadeId: client.id, acao: 'CRIACAO', usuarioId: user.id, detalhes: dto });
+    return client;
   }
 
-  async update(id: string, dto: UpdateClientDto) {
+  async update(id: string, dto: UpdateClientDto, user: Profile) {
     await this.get(id);
-    return this.prisma.client.update({ where: { id }, data: dto });
+    const client = await this.prisma.client.update({ where: { id }, data: dto });
+    await this.audit.log({ entidade: 'Client', entidadeId: id, acao: 'ATUALIZACAO', usuarioId: user.id, detalhes: dto });
+    return client;
   }
 
-  async remove(id: string) {
+  async remove(id: string, user: Profile) {
     await this.get(id);
     await this.prisma.client.delete({ where: { id } });
+    await this.audit.log({ entidade: 'Client', entidadeId: id, acao: 'EXCLUSAO', usuarioId: user.id });
   }
 }

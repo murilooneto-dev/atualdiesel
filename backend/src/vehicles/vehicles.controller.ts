@@ -1,9 +1,11 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { Role } from '@prisma/client';
+import type { Profile } from '@prisma/client';
 import { VehiclesService } from './vehicles.service.js';
 import { CreateVehicleDto } from './dto/create-vehicle.dto.js';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto.js';
 import { Roles } from '../common/decorators/roles.decorator.js';
+import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 
 @Controller('vehicles')
 export class VehiclesController {
@@ -31,19 +33,19 @@ export class VehiclesController {
 
   @Post()
   @Roles(Role.ADMIN, Role.GERENTE)
-  create(@Body() dto: CreateVehicleDto) {
-    return this.vehiclesService.create(dto);
+  create(@Body() dto: CreateVehicleDto, @CurrentUser() user: Profile) {
+    return this.vehiclesService.create(dto, user);
   }
 
   @Patch(':id')
   @Roles(Role.ADMIN, Role.GERENTE)
-  update(@Param('id') id: string, @Body() dto: UpdateVehicleDto) {
-    return this.vehiclesService.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateVehicleDto, @CurrentUser() user: Profile) {
+    return this.vehiclesService.update(id, dto, user);
   }
 
   @Delete(':id')
   @Roles(Role.ADMIN, Role.GERENTE)
-  remove(@Param('id') id: string) {
-    return this.vehiclesService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: Profile) {
+    return this.vehiclesService.remove(id, user);
   }
 }

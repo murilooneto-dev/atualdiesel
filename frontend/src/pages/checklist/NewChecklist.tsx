@@ -34,7 +34,7 @@ const statusOptions: { value: StatusChecklistItem; label: string }[] = [
   { value: 'NAO_APLICAVEL', label: 'Não aplicável' },
 ]
 
-export function NewChecklist() {
+export function NewChecklist({ onSuccess }: { onSuccess?: () => void } = {}) {
   const navigate = useNavigate()
   const [vehicleId, setVehicleId] = useState('')
   const [quilometragem, setQuilometragem] = useState<number | ''>('')
@@ -79,6 +79,7 @@ export function NewChecklist() {
     },
     onSuccess: (checklist) => {
       notifications.show({ message: 'Checklist registrado com sucesso.', color: 'green' })
+      onSuccess?.()
       navigate(`/veiculos/${checklist.vehicleId}`)
     },
   })

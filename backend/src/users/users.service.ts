@@ -1,8 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import type { Profile } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { SupabaseAdminService } from './supabase-admin.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+import { AuditService } from '../audit/audit.service.js';
 
 const INTERNAL_EMAIL_DOMAIN = 'usuarios.atualdiesel.local';
 
@@ -20,6 +22,7 @@ export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly supabaseAdmin: SupabaseAdminService,
+    private readonly audit: AuditService,
   ) {}
 
   private async generateInternalEmail(nome: string): Promise<string> {
@@ -43,7 +46,7 @@ export class UsersService {
     return profile;
   }
 
-  async create(dto: CreateUserDto) {
+  async create(dto: CreateUserDto, actor: Profile) {
     const email = await this.generateInternalEmail(dto.nome);
 
     const { data, error } = await this.supabaseAdmin.client.auth.admin.createUser({
@@ -56,7 +59,7 @@ export class UsersService {
       throw new BadRequestException(error?.message ?? 'Não foi possível criar o usuário.');
     }
 
-    return this.prisma.profile.create({
+    const profile = await this.prisma.profile.create({
       data: {
         id: data.user.id,
         nome: dto.nome,
@@ -65,16 +68,27 @@ export class UsersService {
         ativo: dto.ativo ?? true,
       },
     });
+    await this.audit.log({
+      entidade: 'Profile',
+      entidadeId: profile.id,
+      acao: 'CRIACAO',
+      usuarioId: actor.id,
+      detalhes: { nome: dto.nome, papel: dto.papel },
+    });
+    return profile;
   }
 
-  async update(id: string, dto: UpdateUserDto) {
+  async update(id: string, dto: UpdateUserDto, actor: Profile) {
     await this.get(id);
-    return this.prisma.profile.update({ where: { id }, data: dto });
+    const profile = await this.prisma.profile.update({ where: { id }, data: dto });
+    await this.audit.log({ entidade: 'Profile', entidadeId: id, acao: 'ATUALIZACAO', usuarioId: actor.id, detalhes: dto });
+    return profile;
   }
 
-  async remove(id: string) {
+  async remove(id: string, actor: Profile) {
     await this.get(id);
     await this.supabaseAdmin.client.auth.admin.deleteUser(id);
     await this.prisma.profile.delete({ where: { id } });
+    await this.audit.log({ entidade: 'Profile', entidadeId: id, acao: 'EXCLUSAO', usuarioId: actor.id });
   }
 }

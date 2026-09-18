@@ -1,11 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import type { Profile } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateVehicleDto } from './dto/create-vehicle.dto.js';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto.js';
+import { AuditService } from '../audit/audit.service.js';
 
 @Injectable()
 export class VehiclesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   list(search?: string) {
     return this.prisma.vehicle.findMany({
@@ -45,17 +50,22 @@ export class VehiclesService {
     });
   }
 
-  create(dto: CreateVehicleDto) {
-    return this.prisma.vehicle.create({ data: dto });
+  async create(dto: CreateVehicleDto, user: Profile) {
+    const vehicle = await this.prisma.vehicle.create({ data: dto });
+    await this.audit.log({ entidade: 'Vehicle', entidadeId: vehicle.id, acao: 'CRIACAO', usuarioId: user.id, detalhes: dto });
+    return vehicle;
   }
 
-  async update(id: string, dto: UpdateVehicleDto) {
+  async update(id: string, dto: UpdateVehicleDto, user: Profile) {
     await this.get(id);
-    return this.prisma.vehicle.update({ where: { id }, data: dto });
+    const vehicle = await this.prisma.vehicle.update({ where: { id }, data: dto });
+    await this.audit.log({ entidade: 'Vehicle', entidadeId: id, acao: 'ATUALIZACAO', usuarioId: user.id, detalhes: dto });
+    return vehicle;
   }
 
-  async remove(id: string) {
+  async remove(id: string, user: Profile) {
     await this.get(id);
     await this.prisma.vehicle.delete({ where: { id } });
+    await this.audit.log({ entidade: 'Vehicle', entidadeId: id, acao: 'EXCLUSAO', usuarioId: user.id });
   }
 }

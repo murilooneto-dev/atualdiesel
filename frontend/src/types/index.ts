@@ -9,6 +9,19 @@ export interface Profile {
   criadoEm: string
 }
 
+export type AuditAcao = 'CRIACAO' | 'ATUALIZACAO' | 'EXCLUSAO'
+
+export interface AuditLog {
+  id: string
+  entidade: string
+  entidadeId?: string | null
+  acao: AuditAcao
+  usuarioId?: string | null
+  usuario?: { nome: string; email: string } | null
+  detalhes?: unknown
+  criadoEm: string
+}
+
 export type TipoPessoa = 'PF' | 'PJ'
 
 export interface Client {
@@ -94,6 +107,7 @@ export interface EntryChecklist {
   observacoesGerais?: string | null
   criadoPor: string
   criadoEm: string
+  atualizadoEm?: string | null
   itens: EntryChecklistItem[]
   fotos: EntryChecklistPhoto[]
 }
