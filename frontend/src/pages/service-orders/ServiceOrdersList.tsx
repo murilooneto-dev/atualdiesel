@@ -7,16 +7,12 @@ import { PageHeader } from '../../components/PageHeader'
 import { DataTable } from '../../components/DataTable'
 import { StatusBadge } from '../../components/StatusBadge'
 import { serviceOrdersService } from '../../services/serviceOrders'
+import { STATUS_OS_CONFIG } from '../../utils/statusOs'
 import type { ServiceOrder, StatusOS } from '../../types'
 
-const statusOptions: { value: StatusOS; label: string }[] = [
-  { value: 'ABERTA', label: 'Aberta' },
-  { value: 'EM_ANDAMENTO', label: 'Em andamento' },
-  { value: 'AGUARDANDO_APROVACAO', label: 'Aguardando aprovação' },
-  { value: 'AGUARDANDO_PECA', label: 'Aguardando peça' },
-  { value: 'CONCLUIDA', label: 'Concluída' },
-  { value: 'CANCELADA', label: 'Cancelada' },
-]
+const statusOptions: { value: StatusOS; label: string }[] = (
+  Object.entries(STATUS_OS_CONFIG) as [StatusOS, { label: string; color: string }][]
+).map(([value, config]) => ({ value, label: config.label }))
 
 export function ServiceOrdersList() {
   const [status, setStatus] = useState<string | null>(null)
