@@ -9,19 +9,19 @@ const statusLabels: Record<string, string> = {
   EM_ANDAMENTO: 'Em andamento',
   AGUARDANDO_APROVACAO: 'Aguardando aprovação',
   AGUARDANDO_PECA: 'Aguardando peça',
-  CONCLUIDA: 'Concluída',
+  CONCLUIDA: 'Aprovada',
   CANCELADA: 'Cancelada',
 }
 
-// Fixed order/hues so a status always keeps the same color regardless of which
-// ones are present; validated colorblind-safe as this exact adjacent sequence.
+// Same colors as StatusBadge (via Mantine's CSS vars), so a status always
+// looks the same here and on every badge elsewhere in the app.
 const statusColors: Record<string, string> = {
-  ABERTA: '#2a78d6',
-  EM_ANDAMENTO: '#eb6834',
-  AGUARDANDO_APROVACAO: '#1baf7a',
-  AGUARDANDO_PECA: '#eda100',
-  CONCLUIDA: '#e87ba4',
-  CANCELADA: '#008300',
+  ABERTA: 'var(--mantine-color-blue-6)',
+  EM_ANDAMENTO: 'var(--mantine-color-yellow-6)',
+  AGUARDANDO_APROVACAO: 'var(--mantine-color-orange-6)',
+  AGUARDANDO_PECA: 'var(--mantine-color-grape-6)',
+  CONCLUIDA: 'var(--mantine-color-green-6)',
+  CANCELADA: 'var(--mantine-color-red-6)',
 }
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
@@ -95,10 +95,10 @@ export function Dashboard() {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number, _name, item) => [
-                    `${value} (${totalOs ? Math.round((value / totalOs) * 100) : 0}%)`,
-                    item.payload.label,
-                  ]}
+                  formatter={(value, _name, item) => {
+                    const n = Number(value)
+                    return [`${n} (${totalOs ? Math.round((n / totalOs) * 100) : 0}%)`, item.payload.label]
+                  }}
                 />
               </PieChart>
             </ResponsiveContainer>

@@ -6,7 +6,7 @@ const statusConfig: Record<StatusOS, { label: string; color: string }> = {
   EM_ANDAMENTO: { label: 'Em andamento', color: 'yellow' },
   AGUARDANDO_APROVACAO: { label: 'Aguardando aprovação', color: 'orange' },
   AGUARDANDO_PECA: { label: 'Aguardando peça', color: 'grape' },
-  CONCLUIDA: { label: 'Concluída', color: 'green' },
+  CONCLUIDA: { label: 'Aprovada', color: 'green' },
   CANCELADA: { label: 'Cancelada', color: 'red' },
 }
 

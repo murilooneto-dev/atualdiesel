@@ -5,6 +5,7 @@ import {
   ActionIcon,
   Anchor,
   Button,
+  Collapse,
   Group,
   NumberInput,
   Paper,
@@ -13,9 +14,11 @@ import {
   Stack,
   Table,
   Text,
+  Textarea,
   Title,
 } from '@mantine/core'
-import { IconDownload, IconTrash } from '@tabler/icons-react'
+import { useDisclosure } from '@mantine/hooks'
+import { IconDownload, IconFileText, IconTrash, IconX } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
 import { serviceOrdersService } from '../../services/serviceOrders'
 import { servicesService } from '../../services/services'
@@ -30,7 +33,7 @@ const statusOptions: { value: StatusOS; label: string }[] = [
   { value: 'EM_ANDAMENTO', label: 'Em andamento' },
   { value: 'AGUARDANDO_APROVACAO', label: 'Aguardando aprovação' },
   { value: 'AGUARDANDO_PECA', label: 'Aguardando peça' },
-  { value: 'CONCLUIDA', label: 'Concluída' },
+  { value: 'CONCLUIDA', label: 'Aprovada' },
   { value: 'CANCELADA', label: 'Cancelada' },
 ]
 
@@ -44,6 +47,8 @@ export function ServiceOrderDetail() {
   const [serviceId, setServiceId] = useState<string | null>(null)
   const [quantidade, setQuantidade] = useState<number>(1)
   const [checklistId, setChecklistId] = useState<string | null>(null)
+  const [motivoCancelamento, setMotivoCancelamento] = useState('')
+  const [cancelOpened, { toggle: toggleCancel, close: closeCancel }] = useDisclosure(false)
 
   const { data: os } = useQuery({
     queryKey: ['service-orders', id],
@@ -95,7 +100,17 @@ export function ServiceOrderDetail() {
   const finalizeMutation = useMutation({
     mutationFn: () => serviceOrdersService.finalize(id!),
     onSuccess: () => {
-      notifications.show({ message: 'OS finalizada.', color: 'green' })
+      notifications.show({ message: 'OS aprovada.', color: 'green' })
+      invalidate()
+    },
+  })
+
+  const cancelMutation = useMutation({
+    mutationFn: () => serviceOrdersService.updateStatus(id!, 'CANCELADA', motivoCancelamento || undefined),
+    onSuccess: () => {
+      notifications.show({ message: 'OS cancelada.', color: 'red' })
+      setMotivoCancelamento('')
+      closeCancel()
       invalidate()
     },
   })
@@ -111,6 +126,8 @@ export function ServiceOrderDetail() {
 
   if (!os) return null
 
+  const isTerminal = os.status === 'CONCLUIDA' || os.status === 'CANCELADA'
+
   return (
     <Stack gap="lg">
       <PageHeader
@@ -124,14 +141,61 @@ export function ServiceOrderDetail() {
             >
               Gerar PDF
             </Button>
-            {canFinalize && os.status !== 'CONCLUIDA' && (
-              <Button onClick={() => finalizeMutation.mutate()} loading={finalizeMutation.isPending}>
-                Finalizar OS
+            {os.status === 'CONCLUIDA' && (
+              <Button
+                variant="default"
+                leftSection={<IconFileText size={16} />}
+                onClick={() => serviceOrdersService.openReceipt(os.id)}
+              >
+                Baixar recibo
               </Button>
+            )}
+            {canFinalize && !isTerminal && (
+              <>
+                <Button
+                  variant="outline"
+                  color="red"
+                  leftSection={<IconX size={16} />}
+                  onClick={toggleCancel}
+                >
+                  Cancelar OS
+                </Button>
+                <Button onClick={() => finalizeMutation.mutate()} loading={finalizeMutation.isPending}>
+                  Aprovar OS
+                </Button>
+              </>
             )}
           </Group>
         }
       />
+
+      {canFinalize && !isTerminal && (
+        <Collapse expanded={cancelOpened}>
+          <Paper withBorder p="md">
+            <Stack gap="sm">
+              <Textarea
+                label="Motivo do cancelamento (opcional)"
+                value={motivoCancelamento}
+                onChange={(e) => setMotivoCancelamento(e.currentTarget.value)}
+                autosize
+                minRows={2}
+              />
+              <Group>
+                <Button
+                  color="red"
+                  onClick={() => cancelMutation.mutate()}
+                  loading={cancelMutation.isPending}
+                >
+                  Confirmar cancelamento
+                </Button>
+                <Button variant="subtle" onClick={closeCancel}>
+                  Voltar
+                </Button>
+              </Group>
+            </Stack>
+          </Paper>
+        </Collapse>
+      )}
 
       <Paper withBorder p="md">
         <SimpleGrid cols={{ base: 1, sm: 4 }}>

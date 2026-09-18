@@ -28,4 +28,9 @@ export const serviceOrdersService = {
     const url = URL.createObjectURL(data)
     window.open(url, '_blank')
   },
+  openReceipt: async (osId: string) => {
+    const { data } = await api.get(`/service-orders/${osId}/receipt`, { responseType: 'blob' })
+    const url = URL.createObjectURL(data)
+    window.open(url, '_blank')
+  },
 }
