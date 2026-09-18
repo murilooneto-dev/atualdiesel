@@ -12,6 +12,7 @@ import { ChecklistModule } from './checklist/checklist.module.js';
 import { ServiceOrdersModule } from './service-orders/service-orders.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
 import { PdfModule } from './pdf/pdf.module.js';
+import { AuditModule } from './audit/audit.module.js';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PdfModule } from './pdf/pdf.module.js';
     ServiceOrdersModule,
     DashboardModule,
     PdfModule,
+    AuditModule,
   ],
   controllers: [AppController],
   providers: [AppService],

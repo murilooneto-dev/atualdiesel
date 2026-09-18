@@ -4,10 +4,14 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateChecklistDto } from './dto/create-checklist.dto.js';
 import { UpdateChecklistDto } from './dto/update-checklist.dto.js';
 import { CreateChecklistPhotoDto } from './dto/create-checklist-photo.dto.js';
+import { AuditService } from '../audit/audit.service.js';
 
 @Injectable()
 export class ChecklistsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   list(search?: string) {
     return this.prisma.entryChecklist.findMany({
@@ -26,8 +30,8 @@ export class ChecklistsService {
     return checklist;
   }
 
-  create(dto: CreateChecklistDto, user: Profile) {
-    return this.prisma.entryChecklist.create({
+  async create(dto: CreateChecklistDto, user: Profile) {
+    const checklist = await this.prisma.entryChecklist.create({
       data: {
         vehicleId: dto.vehicleId,
         quilometragem: dto.quilometragem,
@@ -44,9 +48,11 @@ export class ChecklistsService {
       },
       include: { itens: true, fotos: true },
     });
+    await this.audit.log({ entidade: 'EntryChecklist', entidadeId: checklist.id, acao: 'CRIACAO', usuarioId: user.id });
+    return checklist;
   }
 
-  async update(id: string, dto: UpdateChecklistDto) {
+  async update(id: string, dto: UpdateChecklistDto, user: Profile) {
     await this.get(id);
 
     await this.prisma.entryChecklist.update({
@@ -68,6 +74,7 @@ export class ChecklistsService {
       }
     }
 
+    await this.audit.log({ entidade: 'EntryChecklist', entidadeId: id, acao: 'ATUALIZACAO', usuarioId: user.id, detalhes: dto });
     return this.get(id);
   }
 

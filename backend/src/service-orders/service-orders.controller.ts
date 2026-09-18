@@ -53,18 +53,18 @@ export class ServiceOrdersController {
 
   @Patch(':id')
   @Roles(Role.ADMIN, Role.GERENTE)
-  update(@Param('id') id: string, @Body() dto: UpdateServiceOrderDto) {
-    return this.serviceOrdersService.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateServiceOrderDto, @CurrentUser() user: Profile) {
+    return this.serviceOrdersService.update(id, dto, user);
   }
 
   @Post(':id/items')
-  addItem(@Param('id') id: string, @Body() dto: AddServiceOrderItemDto) {
-    return this.serviceOrdersService.addItem(id, dto);
+  addItem(@Param('id') id: string, @Body() dto: AddServiceOrderItemDto, @CurrentUser() user: Profile) {
+    return this.serviceOrdersService.addItem(id, dto, user);
   }
 
   @Delete(':id/items/:itemId')
-  removeItem(@Param('id') id: string, @Param('itemId') itemId: string) {
-    return this.serviceOrdersService.removeItem(id, itemId);
+  removeItem(@Param('id') id: string, @Param('itemId') itemId: string, @CurrentUser() user: Profile) {
+    return this.serviceOrdersService.removeItem(id, itemId, user);
   }
 
   @Patch(':id/status')

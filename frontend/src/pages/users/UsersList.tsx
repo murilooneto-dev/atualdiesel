@@ -3,7 +3,6 @@ import { ActionIcon, Badge, Button, Group, Paper } from '@mantine/core'
 import { IconEdit, IconPlus, IconTrash } from '@tabler/icons-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
-import { PageHeader } from '../../components/PageHeader'
 import { DataTable } from '../../components/DataTable'
 import { usersService } from '../../services/users'
 import type { Profile } from '../../types'
@@ -61,20 +60,17 @@ export function UsersList() {
 
   return (
     <>
-      <PageHeader
-        title="Usuários"
-        action={
-          <Button
-            leftSection={<IconPlus size={16} />}
-            onClick={() => {
-              setEditing(null)
-              setFormOpened(true)
-            }}
-          >
-            Novo usuário
-          </Button>
-        }
-      />
+      <Group justify="flex-end" mb="md">
+        <Button
+          leftSection={<IconPlus size={16} />}
+          onClick={() => {
+            setEditing(null)
+            setFormOpened(true)
+          }}
+        >
+          Novo usuário
+        </Button>
+      </Group>
       <Paper withBorder p="md">
         <DataTable
           data={data}

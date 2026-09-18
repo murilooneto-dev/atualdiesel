@@ -17,7 +17,7 @@ import { ChecklistDetail } from '../pages/checklist/ChecklistDetail'
 import { ServiceOrdersList } from '../pages/service-orders/ServiceOrdersList'
 import { NewServiceOrder } from '../pages/service-orders/NewServiceOrder'
 import { ServiceOrderDetail } from '../pages/service-orders/ServiceOrderDetail'
-import { UsersList } from '../pages/users/UsersList'
+import { SettingsPage } from '../pages/settings/SettingsPage'
 
 export const router = createBrowserRouter([
   {
@@ -48,10 +48,10 @@ export const router = createBrowserRouter([
       { path: '/ordens-servico/nova', element: <NewServiceOrder /> },
       { path: '/ordens-servico/:id', element: <ServiceOrderDetail /> },
       {
-        path: '/usuarios',
+        path: '/configuracoes',
         element: (
           <ProtectedRoute roles={['ADMIN']}>
-            <UsersList />
+            <SettingsPage />
           </ProtectedRoute>
         ),
       },

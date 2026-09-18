@@ -8,7 +8,7 @@ import {
   IconTools,
   IconClipboardCheck,
   IconFileInvoice,
-  IconUserCog,
+  IconSettings,
   IconLogout,
   IconListDetails,
 } from '@tabler/icons-react'
@@ -28,7 +28,7 @@ const navItems = [
   { label: 'Serviços', path: '/servicos', icon: IconTools, roles: ['ADMIN', 'GERENTE', 'MECANICO'] },
   { label: 'Checklist', path: '/checklist', icon: IconClipboardCheck, roles: ['ADMIN', 'GERENTE', 'MECANICO'] },
   { label: 'Ordens de Serviço', path: '/ordens-servico', icon: IconFileInvoice, roles: ['ADMIN', 'GERENTE', 'MECANICO'] },
-  { label: 'Usuários', path: '/usuarios', icon: IconUserCog, roles: ['ADMIN'] },
+  { label: 'Configurações', path: '/configuracoes', icon: IconSettings, roles: ['ADMIN'] },
 ] as const
 
 const roleLabels: Record<string, string> = {

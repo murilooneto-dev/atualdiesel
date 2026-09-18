@@ -40,8 +40,8 @@ export class ChecklistsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateChecklistDto) {
-    return this.checklistsService.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateChecklistDto, @CurrentUser() user: Profile) {
+    return this.checklistsService.update(id, dto, user);
   }
 
   @Post(':id/photos')

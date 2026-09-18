@@ -5,6 +5,7 @@ import { CreateServiceOrderDto } from './dto/create-service-order.dto.js';
 import { UpdateServiceOrderDto } from './dto/update-service-order.dto.js';
 import { AddServiceOrderItemDto } from './dto/add-item.dto.js';
 import { UpdateStatusDto } from './dto/update-status.dto.js';
+import { AuditService } from '../audit/audit.service.js';
 
 const include = {
   client: true,
@@ -16,7 +17,10 @@ const include = {
 
 @Injectable()
 export class ServiceOrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   list(status?: string) {
     return this.prisma.serviceOrder.findMany({
@@ -46,8 +50,8 @@ export class ServiceOrdersService {
     return os;
   }
 
-  create(dto: CreateServiceOrderDto, user: Profile) {
-    return this.prisma.serviceOrder.create({
+  async create(dto: CreateServiceOrderDto, user: Profile) {
+    const os = await this.prisma.serviceOrder.create({
       data: {
         clientId: dto.clientId,
         vehicleId: dto.vehicleId,
@@ -58,11 +62,13 @@ export class ServiceOrdersService {
       },
       include,
     });
+    await this.audit.log({ entidade: 'ServiceOrder', entidadeId: os.id, acao: 'CRIACAO', usuarioId: user.id, detalhes: dto });
+    return os;
   }
 
-  async update(id: string, dto: UpdateServiceOrderDto) {
+  async update(id: string, dto: UpdateServiceOrderDto, user: Profile) {
     await this.get(id);
-    return this.prisma.serviceOrder.update({
+    const os = await this.prisma.serviceOrder.update({
       where: { id },
       data: {
         ...dto,
@@ -70,6 +76,8 @@ export class ServiceOrdersService {
       },
       include,
     });
+    await this.audit.log({ entidade: 'ServiceOrder', entidadeId: id, acao: 'ATUALIZACAO', usuarioId: user.id, detalhes: dto });
+    return os;
   }
 
   private async recalculateTotal(serviceOrderId: string) {
@@ -78,7 +86,7 @@ export class ServiceOrdersService {
     await this.prisma.serviceOrder.update({ where: { id: serviceOrderId }, data: { valorTotal: total } });
   }
 
-  async addItem(osId: string, dto: AddServiceOrderItemDto) {
+  async addItem(osId: string, dto: AddServiceOrderItemDto, user: Profile) {
     await this.get(osId);
     const service = await this.prisma.service.findUnique({ where: { id: dto.serviceId } });
     if (!service) throw new NotFoundException('Serviço não encontrado.');
@@ -95,12 +103,14 @@ export class ServiceOrdersService {
     });
 
     await this.recalculateTotal(osId);
+    await this.audit.log({ entidade: 'ServiceOrderItem', entidadeId: osId, acao: 'CRIACAO', usuarioId: user.id, detalhes: dto });
     return this.get(osId);
   }
 
-  async removeItem(osId: string, itemId: string) {
+  async removeItem(osId: string, itemId: string, user: Profile) {
     await this.prisma.serviceOrderItem.delete({ where: { id: itemId } });
     await this.recalculateTotal(osId);
+    await this.audit.log({ entidade: 'ServiceOrderItem', entidadeId: itemId, acao: 'EXCLUSAO', usuarioId: user.id });
     return this.get(osId);
   }
 
@@ -117,11 +127,19 @@ export class ServiceOrdersService {
       },
     });
 
-    return this.prisma.serviceOrder.update({
+    const updated = await this.prisma.serviceOrder.update({
       where: { id: osId },
       data: { status: dto.status },
       include,
     });
+    await this.audit.log({
+      entidade: 'ServiceOrder',
+      entidadeId: osId,
+      acao: 'ATUALIZACAO',
+      usuarioId: user.id,
+      detalhes: { statusAnterior: os.status, statusNovo: dto.status, observacao: dto.observacao },
+    });
+    return updated;
   }
 
   async finalize(osId: string, user: Profile) {
@@ -137,10 +155,18 @@ export class ServiceOrdersService {
       },
     });
 
-    return this.prisma.serviceOrder.update({
+    const updated = await this.prisma.serviceOrder.update({
       where: { id: osId },
       data: { status: 'CONCLUIDA', dataConclusao: new Date() },
       include,
     });
+    await this.audit.log({
+      entidade: 'ServiceOrder',
+      entidadeId: osId,
+      acao: 'ATUALIZACAO',
+      usuarioId: user.id,
+      detalhes: { statusAnterior: os.status, statusNovo: 'CONCLUIDA' },
+    });
+    return updated;
   }
 }
