@@ -6,6 +6,7 @@ import { Login } from '../pages/auth/Login'
 import { ForgotPassword } from '../pages/auth/ForgotPassword'
 import { ResetPassword } from '../pages/auth/ResetPassword'
 import { Dashboard } from '../pages/dashboard/Dashboard'
+import { OpenOrdersDashboard } from '../pages/dashboard/OpenOrdersDashboard'
 import { ClientsList } from '../pages/clients/ClientsList'
 import { ClientDetail } from '../pages/clients/ClientDetail'
 import { VehiclesList } from '../pages/vehicles/VehiclesList'
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
     ),
     children: [
       { path: '/', element: <Dashboard /> },
+      { path: '/dashboard/em-aberto', element: <OpenOrdersDashboard /> },
       { path: '/clientes', element: <ClientsList /> },
       { path: '/clientes/:id', element: <ClientDetail /> },
       { path: '/veiculos', element: <VehiclesList /> },
