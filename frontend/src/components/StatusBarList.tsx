@@ -7,7 +7,7 @@ export function StatusBarList({ items }: { items: StatusBarItem[] }) {
   return (
     <Stack gap={8}>
       {items.map((item) => (
-        <Paper key={item.key} bg="graphite.7" radius="md" px="sm" py={8}>
+        <Paper key={item.key} withBorder bg="gray.0" radius="md" px="sm" py={8}>
           <Group gap={10} wrap="nowrap">
             <Box
               w={9}
@@ -17,7 +17,7 @@ export function StatusBarList({ items }: { items: StatusBarItem[] }) {
             <Text size="sm" w={150} style={{ flexShrink: 0 }}>
               {item.label}
             </Text>
-            <Box style={{ flex: 1, height: 8, background: 'var(--mantine-color-graphite-9)', borderRadius: 999 }}>
+            <Box style={{ flex: 1, height: 8, background: 'var(--mantine-color-gray-2)', borderRadius: 999 }}>
               <Box
                 style={{
                   height: '100%',
