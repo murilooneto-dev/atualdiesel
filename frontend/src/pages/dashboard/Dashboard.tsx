@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { Paper, SimpleGrid, Text, Title } from '@mantine/core'
 import { PageHeader } from '../../components/PageHeader'
-import { StatusBarList } from '../../components/StatusBarList'
+import { StatusBucketList } from '../../components/StatusBucketRow'
 import { dashboardService } from '../../services/dashboard'
-import { getDashboardGroups } from '../../utils/statusOs'
+import { getDashboardBuckets } from '../../utils/statusOs'
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
@@ -25,7 +25,7 @@ export function Dashboard() {
     queryFn: dashboardService.serviceOrdersByStatus,
   })
 
-  const dashboardGroups = getDashboardGroups(Array.isArray(byStatus) ? byStatus : [])
+  const dashboardBuckets = getDashboardBuckets(Array.isArray(byStatus) ? byStatus : [])
 
   return (
     <>
@@ -49,7 +49,7 @@ export function Dashboard() {
         <Title order={4} mb="md">
           Ordens de serviço por status
         </Title>
-        <StatusBarList items={dashboardGroups} />
+        <StatusBucketList buckets={dashboardBuckets} />
       </Paper>
     </>
   )

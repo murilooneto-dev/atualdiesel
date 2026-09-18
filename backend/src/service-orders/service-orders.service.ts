@@ -19,8 +19,13 @@ export class ServiceOrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
   list(status?: string) {
+    const statuses = status?.split(',').filter(Boolean);
     return this.prisma.serviceOrder.findMany({
-      where: status ? { status: status as never } : undefined,
+      where: !statuses?.length
+        ? undefined
+        : statuses.length === 1
+          ? { status: statuses[0] as never }
+          : { status: { in: statuses as never[] } },
       include,
       orderBy: { dataAbertura: 'desc' },
     });
