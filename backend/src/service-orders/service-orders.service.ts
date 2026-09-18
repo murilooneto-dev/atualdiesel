@@ -32,6 +32,20 @@ export class ServiceOrdersService {
     return os;
   }
 
+  async getForReceipt(id: string) {
+    const os = await this.prisma.serviceOrder.findUnique({
+      where: { id },
+      include: {
+        client: true,
+        vehicle: true,
+        itens: { include: { service: true } },
+        entryChecklist: { include: { itens: { include: { checklistItemType: true } } } },
+      },
+    });
+    if (!os) throw new NotFoundException('Ordem de serviço não encontrada.');
+    return os;
+  }
+
   create(dto: CreateServiceOrderDto, user: Profile) {
     return this.prisma.serviceOrder.create({
       data: {
@@ -119,7 +133,7 @@ export class ServiceOrdersService {
         statusAnterior: os.status,
         statusNovo: 'CONCLUIDA',
         alteradoPor: user.id,
-        observacao: 'OS finalizada.',
+        observacao: 'OS aprovada.',
       },
     });
 

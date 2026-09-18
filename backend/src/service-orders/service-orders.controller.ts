@@ -37,6 +37,15 @@ export class ServiceOrdersController {
     stream.pipe(res);
   }
 
+  @Get(':id/receipt')
+  async receipt(@Param('id') id: string, @Res() res: Response) {
+    const os = await this.serviceOrdersService.getForReceipt(id);
+    const stream = await this.pdfService.generateServiceOrderReceiptPdf(os);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="recibo-os-${os.numeroOs}.pdf"`);
+    stream.pipe(res);
+  }
+
   @Post()
   create(@Body() dto: CreateServiceOrderDto, @CurrentUser() user: Profile) {
     return this.serviceOrdersService.create(dto, user);
