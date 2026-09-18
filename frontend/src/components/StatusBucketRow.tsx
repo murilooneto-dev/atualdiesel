@@ -78,7 +78,7 @@ function StatusBucketRow({ bucket, max, nested }: { bucket: DashboardBucket; max
         </Group>
       </Paper>
 
-      <Collapse in={opened}>
+      <Collapse expanded={opened}>
         <Box pl="lg" pt={8} pb={4}>
           {isLeaf ? (
             <DataTable<ServiceOrder>
