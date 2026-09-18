@@ -55,12 +55,7 @@ export function AppLayout() {
           <Group gap="xs" wrap="nowrap">
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" color="white" />
             <Image src="/logo-mark.png" alt="" h={36} w={36} fit="contain" />
-            <Text fw={800} c="white" size="lg" lts={0.3} visibleFrom="xs">
-              ATUAL{' '}
-              <Text span c="amber.5" fw={800} inherit>
-                DIESEL
-              </Text>
-            </Text>
+            <Image src="/logo-wordmark.png" alt="Atual Diesel" h={26} w="auto" fit="contain" visibleFrom="xs" />
           </Group>
           <Group gap="sm" wrap="nowrap">
             <Avatar color="amber" radius="xl" size={32}>
