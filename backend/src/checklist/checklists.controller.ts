@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Param, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import type { Profile } from '@prisma/client';
 import { ChecklistsService } from './checklists.service.js';
 import { CreateChecklistDto } from './dto/create-checklist.dto.js';
+import { UpdateChecklistDto } from './dto/update-checklist.dto.js';
 import { CreateChecklistPhotoDto } from './dto/create-checklist-photo.dto.js';
 import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import { PdfService } from '../pdf/pdf.service.js';
@@ -36,6 +37,11 @@ export class ChecklistsController {
   @Post()
   create(@Body() dto: CreateChecklistDto, @CurrentUser() user: Profile) {
     return this.checklistsService.create(dto, user);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() dto: UpdateChecklistDto) {
+    return this.checklistsService.update(id, dto);
   }
 
   @Post(':id/photos')

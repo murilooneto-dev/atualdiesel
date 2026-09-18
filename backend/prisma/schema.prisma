@@ -149,6 +149,7 @@ model EntryChecklist {
   criadoPor          String   @map("criado_por") @db.Uuid
   criadoPorProfile   Profile  @relation("ChecklistCriadoPor", fields: [criadoPor], references: [id])
   criadoEm           DateTime @default(now()) @map("criado_em")
+  atualizadoEm       DateTime? @map("atualizado_em")
 
   itens         EntryChecklistItem[]
   fotos         EntryChecklistPhoto[]

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Profile } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateChecklistDto } from './dto/create-checklist.dto.js';
+import { UpdateChecklistDto } from './dto/update-checklist.dto.js';
 import { CreateChecklistPhotoDto } from './dto/create-checklist-photo.dto.js';
 
 @Injectable()
@@ -43,6 +44,31 @@ export class ChecklistsService {
       },
       include: { itens: true, fotos: true },
     });
+  }
+
+  async update(id: string, dto: UpdateChecklistDto) {
+    await this.get(id);
+
+    await this.prisma.entryChecklist.update({
+      where: { id },
+      data: {
+        quilometragem: dto.quilometragem,
+        nivelCombustivel: dto.nivelCombustivel,
+        observacoesGerais: dto.observacoesGerais,
+        atualizadoEm: new Date(),
+      },
+    });
+
+    if (dto.itens) {
+      for (const item of dto.itens) {
+        await this.prisma.entryChecklistItem.update({
+          where: { id: item.id },
+          data: { status: item.status, observacao: item.observacao },
+        });
+      }
+    }
+
+    return this.get(id);
   }
 
   async addPhoto(checklistId: string, dto: CreateChecklistPhotoDto) {

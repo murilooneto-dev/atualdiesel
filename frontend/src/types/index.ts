@@ -94,6 +94,7 @@ export interface EntryChecklist {
   observacoesGerais?: string | null
   criadoPor: string
   criadoEm: string
+  atualizadoEm?: string | null
   itens: EntryChecklistItem[]
   fotos: EntryChecklistPhoto[]
 }

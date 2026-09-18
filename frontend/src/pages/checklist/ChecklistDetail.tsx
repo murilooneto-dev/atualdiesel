@@ -1,7 +1,22 @@
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { Badge, Button, Group, Image, Paper, SimpleGrid, Stack, Table, Text, Title } from '@mantine/core'
-import { IconDownload } from '@tabler/icons-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  Badge,
+  Button,
+  Group,
+  Image,
+  Paper,
+  Select,
+  SimpleGrid,
+  Stack,
+  Table,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core'
+import { IconDownload, IconEdit, IconX } from '@tabler/icons-react'
+import { notifications } from '@mantine/notifications'
 import { checklistsService } from '../../services/checklist'
 import { PageHeader } from '../../components/PageHeader'
 import type { StatusChecklistItem } from '../../types'
@@ -20,14 +35,41 @@ const statusConfig: Record<StatusChecklistItem, { label: string; color: string }
   NAO_APLICAVEL: { label: 'Não aplicável', color: 'gray' },
 }
 
+const statusOptions = Object.entries(statusConfig).map(([value, config]) => ({ value, label: config.label }))
+
 export function ChecklistDetail() {
   const { id } = useParams<{ id: string }>()
+  const queryClient = useQueryClient()
+  const [editing, setEditing] = useState(false)
+  const [itemEdits, setItemEdits] = useState<Record<string, { status: StatusChecklistItem; observacao: string }>>({})
 
   const { data: checklist } = useQuery({
     queryKey: ['checklists', id],
     queryFn: () => checklistsService.get(id!),
     enabled: !!id,
   })
+
+  const updateMutation = useMutation({
+    mutationFn: () =>
+      checklistsService.update(id!, {
+        itens: Object.entries(itemEdits).map(([itemId, edit]) => ({ id: itemId, ...edit })),
+      } as never),
+    onSuccess: () => {
+      notifications.show({ message: 'Checklist atualizado com sucesso.', color: 'green' })
+      queryClient.invalidateQueries({ queryKey: ['checklists', id] })
+      setEditing(false)
+    },
+  })
+
+  const startEditing = () => {
+    if (!checklist) return
+    setItemEdits(
+      Object.fromEntries(
+        checklist.itens.map((item) => [item.id, { status: item.status, observacao: item.observacao ?? '' }]),
+      ),
+    )
+    setEditing(true)
+  }
 
   if (!checklist) return null
 
@@ -36,13 +78,31 @@ export function ChecklistDetail() {
       <PageHeader
         title={`Checklist #${checklist.numeroChecklist} — ${checklist.vehicle?.placa ?? ''}`}
         action={
-          <Button
-            variant="default"
-            leftSection={<IconDownload size={16} />}
-            onClick={() => checklistsService.openPdf(checklist.id)}
-          >
-            Gerar PDF
-          </Button>
+          <Group gap="sm">
+            {editing ? (
+              <>
+                <Button variant="default" leftSection={<IconX size={16} />} onClick={() => setEditing(false)}>
+                  Cancelar
+                </Button>
+                <Button loading={updateMutation.isPending} onClick={() => updateMutation.mutate()}>
+                  Salvar alterações
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="default" leftSection={<IconEdit size={16} />} onClick={startEditing}>
+                  Editar
+                </Button>
+                <Button
+                  variant="default"
+                  leftSection={<IconDownload size={16} />}
+                  onClick={() => checklistsService.openPdf(checklist.id)}
+                >
+                  Gerar PDF
+                </Button>
+              </>
+            )}
+          </Group>
         }
       />
 
@@ -83,14 +143,42 @@ export function ChecklistDetail() {
                 <Table.Tr key={item.id}>
                   <Table.Td>{item.checklistItemType?.nome ?? '-'}</Table.Td>
                   <Table.Td>
-                    <Badge
-                      color={statusConfig[item.status].color}
-                      styles={{ label: { overflow: 'visible', textOverflow: 'clip' } }}
-                    >
-                      {statusConfig[item.status].label}
-                    </Badge>
+                    {editing ? (
+                      <Select
+                        data={statusOptions}
+                        value={itemEdits[item.id]?.status ?? item.status}
+                        onChange={(value) =>
+                          setItemEdits((prev) => ({
+                            ...prev,
+                            [item.id]: { ...prev[item.id], status: (value as StatusChecklistItem) ?? item.status },
+                          }))
+                        }
+                        w={180}
+                      />
+                    ) : (
+                      <Badge
+                        color={statusConfig[item.status].color}
+                        styles={{ label: { overflow: 'visible', textOverflow: 'clip' } }}
+                      >
+                        {statusConfig[item.status].label}
+                      </Badge>
+                    )}
                   </Table.Td>
-                  <Table.Td>{item.observacao ?? '-'}</Table.Td>
+                  <Table.Td>
+                    {editing ? (
+                      <TextInput
+                        value={itemEdits[item.id]?.observacao ?? ''}
+                        onChange={(e) =>
+                          setItemEdits((prev) => ({
+                            ...prev,
+                            [item.id]: { ...prev[item.id], observacao: e.currentTarget.value },
+                          }))
+                        }
+                      />
+                    ) : (
+                      item.observacao ?? '-'
+                    )}
+                  </Table.Td>
                 </Table.Tr>
               ))}
               {checklist.itens.length === 0 && (
@@ -128,6 +216,7 @@ export function ChecklistDetail() {
       <Group justify="flex-end">
         <Text c="dimmed" size="sm">
           Criado em {new Date(checklist.criadoEm).toLocaleString('pt-BR')}
+          {checklist.atualizadoEm && ` · Alterado em ${new Date(checklist.atualizadoEm).toLocaleString('pt-BR')}`}
         </Text>
       </Group>
     </Stack>
